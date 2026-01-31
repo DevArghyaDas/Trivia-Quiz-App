@@ -1,10 +1,10 @@
-import { getQuestions } from "@/utils/request";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useContext, useState } from "react";
 import Question from "./Question";
 import QuizContext from "./QuizContext";
 import { Progress } from "../ui/progress";
+import getQuestions from "@/hooks/getQuestions";
 export interface TriviaApiResponse {
   response_code: number;
   results: TriviaResult[];
@@ -48,8 +48,13 @@ const Quiz = () => {
 
   const result = useQuery({
     queryKey: ["questions"],
-    queryFn: async () => getQuestions({ category: type, difficulty: slug }),
-    retry: 1,
+    queryFn: async () => {
+      const success = await getQuestions({ category: type, difficulty: slug });
+      if (!success) {
+        throw new Error("Failed to fetch questions");
+      }
+      return success;
+    },
 
     refetchOnWindowFocus: false,
   });
